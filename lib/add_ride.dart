@@ -113,7 +113,7 @@ class _AddPageState extends State<AddPage> {
                 ElevatedButton(
                   style: ButtonStyle(
                     backgroundColor:
-                        MaterialStateProperty.all<Color>(Colors.white),
+                        MaterialStateProperty.all<Color>(Colors.black),
                   ),
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
@@ -155,7 +155,8 @@ class _AddPageState extends State<AddPage> {
                       }
                     }
                   },
-                  child: const Text("Add Ride"),
+                  child: const Text("Add Ride",
+                      style: TextStyle(color: Colors.white)),
                 ),
               ],
             ),

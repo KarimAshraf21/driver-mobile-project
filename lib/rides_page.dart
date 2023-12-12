@@ -17,6 +17,7 @@ class _RidePageState extends State<RidePage> {
   TextEditingController _searchController = TextEditingController();
   User? _user;
   Map<String, dynamic>? _userData;
+
   @override
   void initState() {
     _getUserInfo();
@@ -82,6 +83,13 @@ class _RidePageState extends State<RidePage> {
                   return ListView.builder(
                     itemCount: filteredRides.length,
                     itemBuilder: (context, index) {
+                      // Extract ride details
+                      String time = filteredRides[index]['time'];
+                      String start = filteredRides[index]['start'];
+                      String end = filteredRides[index]['end'];
+                      int availableSeats =
+                          filteredRides[index]['availableSeats'];
+
                       return Card(
                         color: Colors.white,
                         child: Padding(
@@ -93,10 +101,42 @@ class _RidePageState extends State<RidePage> {
                                 child: Column(
                                   children: [
                                     ListTile(
-                                      leading: const Icon(Icons.access_time),
-                                      title: Text("Ride ${index + 1}"),
-                                      subtitle: Text(
-                                          "${filteredRides[index]['time']}"),
+                                      title: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              const Icon(Icons.access_time),
+                                              const SizedBox(width: 8),
+                                              Text("Time: $time"),
+                                            ],
+                                          ),
+                                          Row(
+                                            children: [
+                                              const Icon(Icons.location_on),
+                                              const SizedBox(width: 8),
+                                              Text("Start: $start"),
+                                            ],
+                                          ),
+                                          Row(
+                                            children: [
+                                              const Icon(Icons.location_on),
+                                              const SizedBox(width: 8),
+                                              Text("End: $end"),
+                                            ],
+                                          ),
+                                          Row(
+                                            children: [
+                                              const Icon(
+                                                  Icons.event_seat_sharp),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                  "Available Seats: $availableSeats"),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -106,8 +146,11 @@ class _RidePageState extends State<RidePage> {
                                 child: ElevatedButton(
                                   style: ButtonStyle(
                                     backgroundColor:
-                                        MaterialStateProperty.all<Color>(
-                                            Colors.redAccent),
+                                        MaterialStateProperty.all<Color>(Colors
+                                            .red), // Set background color to black
+                                    foregroundColor:
+                                        MaterialStateProperty.all<Color>(Colors
+                                            .white), // Set icon color to white
                                   ),
                                   onPressed: () {
                                     // Implement your logic for handling ride deletion
@@ -116,8 +159,7 @@ class _RidePageState extends State<RidePage> {
                                     _deleteRide(filteredRides[index].id);
                                     print("Delete ride button pressed");
                                   },
-                                  child: const Text("Delete",
-                                      style: TextStyle(color: Colors.white)),
+                                  child: const Text("Delete"),
                                 ),
                               )
                             ],
@@ -149,7 +191,10 @@ class _RidePageState extends State<RidePage> {
             MaterialPageRoute(builder: (context) => const AddPage()),
           );
         },
-        child: const Icon(Icons.add),
+        backgroundColor: Colors.black,
+
+        child: const Icon(Icons.add,
+            color: Colors.white), // Set background color to black
       ),
     );
   }

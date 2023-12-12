@@ -1,7 +1,7 @@
 // ignore_for_file: file_names, unused_import, unused_field
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:driver/add_page.dart';
+import 'package:driver/rides_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '/profile_page.dart';
@@ -34,7 +34,7 @@ class _HomePageState extends State<HomePage> {
     if (user != null) {
       DocumentSnapshot<Map<String, dynamic>> userData = await FirebaseFirestore
           .instance
-          .collection('users')
+          .collection('drivers')
           .doc(user.uid)
           .get();
 
@@ -53,7 +53,7 @@ class _HomePageState extends State<HomePage> {
 
   // List of pages corresponding to each tab
   final List<Widget> _pages = [
-    const AddPage(),
+    const RidePage(),
     const HistoryPage(),
     const ProfilePage(),
   ];
@@ -81,7 +81,7 @@ class _HomePageState extends State<HomePage> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.history),
-            label: 'Trips',
+            label: 'History',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
@@ -111,7 +111,7 @@ class _HomePageState extends State<HomePage> {
                     color: Colors.white),
               ),
               const Text(
-                'Where are you going?',
+                'Add a ride?',
                 style: TextStyle(fontSize: 12, color: Colors.white),
               ),
             ],

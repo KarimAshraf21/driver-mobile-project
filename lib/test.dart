@@ -3,7 +3,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '/home_page.dart';
 
 class AddPage extends StatefulWidget {
   const AddPage({Key? key}) : super(key: key);
@@ -13,12 +12,52 @@ class AddPage extends StatefulWidget {
 }
 
 class _AddPageState extends State<AddPage> {
-  List<String> locations = ['Campus', 'Nasr City 1', 'Tagamoa', 'Maadi'];
-  String selectedStartLocation = "Campus";
-  String selectedDestination = 'Nasr City 1';
+  List<String> routes = [];
+  String selectedStartLocation = "";
+  String selectedDestination = "";
   final GlobalKey<FormState> _formKey = GlobalKey();
   final TextEditingController _availableSeats = TextEditingController();
+  final TextEditingController _controllerStart = TextEditingController();
+  final TextEditingController _controllerEnd = TextEditingController();
   final TextEditingController _controllerTime = TextEditingController();
+
+  @override
+  void initState() {
+    print("here");
+    super.initState();
+    print("here");
+    // Call a function to fetch routes from Firestore when the widget is initialized
+    fetchRoutes();
+  }
+
+  Future<void> fetchRoutes() async {
+    try {
+      // Access the Firestore instance
+      FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+      // Get the 'routes' document
+      DocumentSnapshot<Map<String, dynamic>> routesDocument = await firestore
+          .collection('routes')
+          .doc('aKiq3bmcXkHquU5g6ynO')
+          .get();
+
+      // Extract the 'routes' field from the document
+      List<dynamic> routesList = routesDocument.get('routes');
+      print("here");
+
+      // Update the state with the fetched routes
+      setState(() {
+        routes = List<String>.from(routesList);
+        print("here");
+        print(routes);
+        // Set default values if needed
+        selectedStartLocation = routes.isNotEmpty ? routes[0] : "";
+        selectedDestination = routes.isNotEmpty ? routes[0] : "";
+      });
+    } catch (e) {
+      print("Error fetching routes from Firestore: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +65,7 @@ class _AddPageState extends State<AddPage> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         leading: iconBack(context),
-        title: const Text("Add Notes", style: TextStyle(color: Colors.white)),
+        title: const Text("Add Rides", style: TextStyle(color: Colors.white)),
         centerTitle: true,
       ),
       body: Container(
@@ -59,12 +98,12 @@ class _AddPageState extends State<AddPage> {
                           },
                         ),
                         TextFormField(
-                          controller: _availableSeats,
+                          controller: _controllerStart,
                           decoration: const InputDecoration(
-                            icon: Icon(Icons.event_seat_sharp),
+                            icon: Icon(Icons.location_on),
                             filled: true,
                             fillColor: Colors.white70,
-                            hintText: "add available seats",
+                            hintText: "add start point",
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -74,8 +113,38 @@ class _AddPageState extends State<AddPage> {
                             }
                           },
                         ),
-                        // Remove TextFormField widgets for start and end points
-                        // Add other text form fields as needed
+                        TextFormField(
+                          controller: _controllerEnd,
+                          decoration: const InputDecoration(
+                            icon: Icon(Icons.location_on),
+                            filled: true,
+                            fillColor: Colors.white70,
+                            hintText: "add end point",
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return "Can't be Empty";
+                            } else {
+                              return null;
+                            }
+                          },
+                        ),
+                        TextFormField(
+                          controller: _availableSeats,
+                          decoration: const InputDecoration(
+                            icon: Icon(Icons.event_seat_sharp),
+                            filled: true,
+                            fillColor: Colors.white70,
+                            hintText: "add seats",
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return "Can't be Empty";
+                            } else {
+                              return null;
+                            }
+                          },
+                        ),
                       ],
                     ),
                   ),
@@ -85,7 +154,7 @@ class _AddPageState extends State<AddPage> {
                   child: _buildDropdown(
                     selectedStartLocation,
                     'From',
-                    locations,
+                    routes,
                     (value) {
                       setState(() {
                         selectedStartLocation = value!;
@@ -99,7 +168,7 @@ class _AddPageState extends State<AddPage> {
                   child: _buildDropdown(
                     selectedDestination,
                     'To',
-                    locations,
+                    routes,
                     (value) {
                       setState(() {
                         selectedDestination = value!;
@@ -107,7 +176,6 @@ class _AddPageState extends State<AddPage> {
                     },
                   ),
                 ),
-                //////////////////////////////////////////////////////////////
                 ElevatedButton(
                   style: ButtonStyle(
                     backgroundColor:
@@ -140,11 +208,9 @@ class _AddPageState extends State<AddPage> {
                           });
 
                           _controllerTime.clear();
-                          // Clearing other text form fields as needed
+                          _controllerStart.clear();
+                          _controllerEnd.clear();
                           _availableSeats.clear();
-
-                          // Navigate back to the previous screen
-                          Navigator.pop(context);
                         } else {
                           print("User not logged in.");
                         }

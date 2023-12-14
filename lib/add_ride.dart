@@ -19,7 +19,7 @@ class _AddPageState extends State<AddPage> {
   String selectedDestination = 'Nasr City 1';
   int selectedSeats = 1;
   String selectedTime = '5:30pm';
-  double selectedPrice = 0.0;
+  String selectedPrice = ''; // Change the type to String
   DateTime selectedDate = DateTime.now();
 
   final GlobalKey<FormState> _formKey = GlobalKey();
@@ -230,7 +230,7 @@ class _AddPageState extends State<AddPage> {
                             'start': selectedStartLocation,
                             'end': selectedDestination,
                             'availableSeats': selectedSeats,
-                            'price': double.parse(_controllerPrice.text),
+                            'price': _controllerPrice.text, // Store as string
                             'date': selectedDate,
                           });
 
@@ -243,7 +243,7 @@ class _AddPageState extends State<AddPage> {
                           setState(() {
                             selectedSeats = 1;
                             selectedTime = '5:30pm';
-                            selectedPrice = 0.0;
+                            selectedPrice = '';
                             selectedDate = DateTime.now();
                             _controllerPrice.clear();
                             _controllerDate.clear();

@@ -1,12 +1,7 @@
 // ignore_for_file: avoid_print
 
 import 'package:driver/firebase_options.dart';
-import 'package:driver/history_page.dart';
-
-// import '/screens/home_page.dart';
-// import '/screens/login_page.dart';
-// import '/screens/signup_page.dart';
-// import '/screens/trips_page.dart';
+import 'package:driver/requests_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -49,7 +44,7 @@ class _MyAppState extends State<MyApp> {
         '/signup': (context) => const SignupPage(),
         '/login': (context) => const LoginPage(),
         '/home': (context) => const HomePage(),
-        '/history': (context) => const HistoryPage(),
+        '/history': (context) => const RequestsPage(),
       },
       theme: ThemeData(
         appBarTheme: const AppBarTheme(

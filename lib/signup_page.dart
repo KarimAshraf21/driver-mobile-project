@@ -217,7 +217,20 @@ class _SignupPageState extends State<SignupPage> {
               await FirebaseFirestore.instance
                   .collection('users')
                   .doc(userCredential.user!.uid)
-                  .collection('rideHistory')
+                  .collection('upcoming')
+                  .doc(
+                      rideId) // Use rideId as the document ID in the subcollection
+                  .set({
+                'driverId': driverId,
+                // Other fields you may want to include, initially empty or null
+                'status': null,
+                'someOtherField': null,
+                // ...
+              });
+              await FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(userCredential.user!.uid)
+                  .collection('previous')
                   .doc(
                       rideId) // Use rideId as the document ID in the subcollection
                   .set({

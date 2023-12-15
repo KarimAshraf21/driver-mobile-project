@@ -56,7 +56,7 @@ class _MyAppState extends State<MyApp> {
           iconTheme: IconThemeData(color: Colors.white),
         ),
       ),
-      home: const HomePage(),
+      home: const LoginPage(),
     );
   }
 }

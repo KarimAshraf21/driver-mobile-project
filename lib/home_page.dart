@@ -23,6 +23,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   User? _user;
   Map<String, dynamic>? _userData;
+
   @override
   void initState() {
     _getUserInfo();
@@ -51,7 +52,6 @@ class _HomePageState extends State<HomePage> {
 
   int _currentIndex = 0;
 
-  // List of pages corresponding to each tab
   final List<Widget> _pages = [
     const RidePage(),
     const RequestsPage(),
@@ -62,8 +62,11 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
-      appBar:
-          _currentIndex == 0 ? buildBookingPageAppBar() : buildStandardAppBar(),
+      appBar: _currentIndex == 0
+          ? buildBookingPageAppBar()
+          : _currentIndex == 1
+              ? buildRequestsPageAppBar()
+              : buildProfilePageAppBar(),
       body: _pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         selectedItemColor: Colors.black,
@@ -80,8 +83,8 @@ class _HomePageState extends State<HomePage> {
             label: "Ride",
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.history),
-            label: 'History',
+            icon: Icon(Icons.location_on),
+            label: 'Requests',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
@@ -92,14 +95,13 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Custom app bar for BookingPage
   PreferredSizeWidget buildBookingPageAppBar() {
     return AppBar(
       backgroundColor: Colors.black,
       title: Row(
         children: [
           SizedBox(width: 50, child: Image.asset('assets/logo.png')),
-          const SizedBox(width: 8), // Add some spacing between logo and texts
+          const SizedBox(width: 8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -121,11 +123,51 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Standard app bar for other pages
-  AppBar buildStandardAppBar() {
+  PreferredSizeWidget buildRequestsPageAppBar() {
     return AppBar(
       backgroundColor: Colors.black,
-      title: SizedBox(width: 50, child: Image.asset('assets/logo.png')),
+      title: Row(
+        children: [
+          SizedBox(width: 50, child: Image.asset('assets/logo.png')),
+          const SizedBox(width: 8),
+          const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Requests',
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  PreferredSizeWidget buildProfilePageAppBar() {
+    return AppBar(
+      backgroundColor: Colors.black,
+      title: Row(
+        children: [
+          SizedBox(width: 50, child: Image.asset('assets/logo.png')),
+          const SizedBox(width: 8),
+          const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Driver Profile',
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

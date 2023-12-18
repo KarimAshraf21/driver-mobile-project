@@ -76,9 +76,6 @@ class _RequestsPageState extends State<RequestsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Requests Page'),
-      ),
       body: StreamBuilder<List<QueryDocumentSnapshot<Map<String, dynamic>>>>(
         stream: _streamController.stream,
         builder: (context, snapshot) {
@@ -103,14 +100,45 @@ class _RequestsPageState extends State<RequestsPage> {
                         .collection('users')
                         .doc(booking['userId'])
                         .get(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.done) {
+                    builder: (context, userSnapshot) {
+                      if (userSnapshot.connectionState ==
+                          ConnectionState.done) {
                         var userData =
-                            snapshot.data!.data() as Map<String, dynamic>?;
+                            userSnapshot.data!.data() as Map<String, dynamic>?;
 
                         if (userData != null) {
-                          return Text(
-                              'User: ${userData['displayName'] ?? 'Unknown'}');
+                          return FutureBuilder<DocumentSnapshot>(
+                            future: FirebaseFirestore.instance
+                                .collection('rides')
+                                .doc(booking['rideId'])
+                                .get(),
+                            builder: (context, rideSnapshot) {
+                              if (rideSnapshot.connectionState ==
+                                  ConnectionState.done) {
+                                var rideData = rideSnapshot.data!.data()
+                                    as Map<String, dynamic>?;
+
+                                if (rideData != null) {
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                          'User: ${userData['firstName'] ?? 'Unknown'}'),
+                                      Text(
+                                          'UserID: ${userData['id'] ?? 'Unknown'}'),
+                                      Text(
+                                          'Ride Details: ${rideData['end'] ?? 'Unknown'}'),
+                                    ],
+                                  );
+                                } else {
+                                  return const Text('Ride: Unknown');
+                                }
+                              } else {
+                                return const Text('Ride: Loading...');
+                              }
+                            },
+                          );
                         } else {
                           return const Text('User: Unknown');
                         }
@@ -127,6 +155,10 @@ class _RequestsPageState extends State<RequestsPage> {
                         onPressed: () {
                           _acceptBooking(bookings[index].id);
                         },
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor: Colors.black,
+                        ),
                         child: const Text('Accept'),
                       ),
                       const SizedBox(width: 8),
@@ -134,6 +166,10 @@ class _RequestsPageState extends State<RequestsPage> {
                         onPressed: () {
                           _rejectBooking(bookings[index].id);
                         },
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: Colors.red,
+                          backgroundColor: Colors.black,
+                        ),
                         child: const Text('Reject'),
                       ),
                     ],

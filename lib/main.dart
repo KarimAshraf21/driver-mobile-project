@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 
 import 'package:driver/firebase_options.dart';
+import 'package:driver/profile_page.dart';
 import 'package:driver/requests_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';

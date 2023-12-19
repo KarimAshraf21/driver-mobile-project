@@ -1,8 +1,8 @@
 import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart'; // Import the intl package
 
 class RequestsPage extends StatefulWidget {
   const RequestsPage({Key? key}) : super(key: key);
@@ -23,23 +23,18 @@ class _RequestsPageState extends State<RequestsPage> {
   }
 
   void _fetchPendingBookings() async {
-    // Get the current authenticated user
     var user = FirebaseAuth.instance.currentUser;
 
     if (user != null) {
-      // Access the Firestore instance
       FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-      // Step 1: Retrieve the rides for the specific driver
       var ridesQuery = await firestore
           .collection('rides')
           .where('driverId', isEqualTo: user.uid)
           .get();
 
-      // Extract rideIds from the rides
       List<String> rideIds = ridesQuery.docs.map((doc) => doc.id).toList();
 
-      // Step 2: Retrieve pending bookings for the retrieved rides
       var bookingsStream = firestore
           .collection('bookings')
           .where('rideId', whereIn: rideIds)
@@ -53,21 +48,16 @@ class _RequestsPageState extends State<RequestsPage> {
   }
 
   void _acceptBooking(String bookingId) async {
-    // Access the Firestore instance
     FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-    // Update the booking status to 'accepted'
     await firestore.collection('bookings').doc(bookingId).update({
       'status': 'accepted',
     });
   }
 
   void _rejectBooking(String bookingId) async {
-    // Access the Firestore instance
     FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-    // You can delete the booking or mark it as 'rejected' based on your requirements
-    // For example, marking it as 'rejected':
     await firestore.collection('bookings').doc(bookingId).update({
       'status': 'rejected',
     });
@@ -119,6 +109,13 @@ class _RequestsPageState extends State<RequestsPage> {
                                     as Map<String, dynamic>?;
 
                                 if (rideData != null) {
+                                  DateTime rideDate =
+                                      (rideData['date'] as Timestamp).toDate();
+                                  String formattedDate =
+                                      _getFormattedDate(rideDate);
+                                  String rideTime =
+                                      rideData['time'] ?? 'Unknown';
+
                                   return Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
@@ -129,6 +126,8 @@ class _RequestsPageState extends State<RequestsPage> {
                                           'UserID: ${userData['id'] ?? 'Unknown'}'),
                                       Text(
                                           'Ride Details: ${rideData['end'] ?? 'Unknown'}'),
+                                      Text('Date: $formattedDate'),
+                                      Text('Time: $rideTime'),
                                     ],
                                   );
                                 } else {
@@ -189,6 +188,10 @@ class _RequestsPageState extends State<RequestsPage> {
         },
       ),
     );
+  }
+
+  String _getFormattedDate(DateTime date) {
+    return DateFormat('dd-MM-yyyy').format(date);
   }
 
   @override

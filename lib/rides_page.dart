@@ -1,13 +1,15 @@
-// ignore_for_file: use_build_context_synchronously, prefer_final_fields, unused_field, avoid_print
+// Import necessary packages
+// ignore_for_file: avoid_print
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart'; // Add this import for date formatting
 
 import 'add_ride.dart';
 
 class RidePage extends StatefulWidget {
-  const RidePage({super.key});
+  const RidePage({Key? key}) : super(key: key);
 
   @override
   State<RidePage> createState() => _RidePageState();
@@ -44,117 +46,160 @@ class _RidePageState extends State<RidePage> {
     CollectionReference<Map<String, dynamic>> ridesCollection =
         FirebaseFirestore.instance.collection('rides');
 
+    DateTime today = DateTime.now();
+    DateTime todayStart = DateTime(today.year, today.month, today.day);
+
     return Scaffold(
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: ridesCollection
             .where('driverId', isEqualTo: _user?.uid)
+            .where('date', isGreaterThanOrEqualTo: todayStart)
+            .orderBy('date') // Order by date in ascending order (oldest first)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             List<QueryDocumentSnapshot<Map<String, dynamic>>> rides =
                 snapshot.data!.docs;
 
-            return ListView.builder(
-              itemCount: rides.length,
-              itemBuilder: (context, index) {
-                // Extract ride details
-                String time = rides[index]['time'];
-                String start = rides[index]['start'];
-                String end = rides[index]['end'];
-                int availableSeats = rides[index]['availableSeats'];
-                DateTime rideDate =
-                    (rides[index]['date'] as Timestamp).toDate();
+            // Sort rides based on date (oldest first)
+            rides.sort((a, b) {
+              DateTime dateA = (a['date'] as Timestamp).toDate();
+              DateTime dateB = (b['date'] as Timestamp).toDate();
+              return dateA.compareTo(dateB);
+            });
 
-                return Card(
-                  color: Colors.white,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      children: [
-                        Container(
-                          color: Colors.white70,
-                          child: Column(
-                            children: [
-                              ListTile(
-                                title: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        const Icon(Icons.access_time),
-                                        const SizedBox(width: 8),
-                                        Text("Time: $time"),
-                                      ],
-                                    ),
-                                    Row(
-                                      children: [
-                                        const Icon(Icons.date_range),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                            "Date: ${_getFormattedDate(rideDate)}"),
-                                      ],
-                                    ),
-                                    Row(
-                                      children: [
-                                        const Icon(Icons.location_on),
-                                        const SizedBox(width: 8),
-                                        Text("Start: $start"),
-                                      ],
-                                    ),
-                                    Row(
-                                      children: [
-                                        const Icon(Icons.location_on),
-                                        const SizedBox(width: 8),
-                                        Text("End: $end"),
-                                      ],
-                                    ),
-                                    Row(
-                                      children: [
-                                        const Icon(Icons.event_seat_sharp),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                            "Available Seats: $availableSeats"),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
+            Map<String, List<QueryDocumentSnapshot<Map<String, dynamic>>>>
+                groupedRides = {};
+
+            for (QueryDocumentSnapshot<Map<String, dynamic>> ride in rides) {
+              DateTime rideDate = (ride['date'] as Timestamp).toDate();
+              String formattedDate =
+                  DateFormat('E, dd-MM-yyyy').format(rideDate);
+
+              groupedRides.putIfAbsent(formattedDate, () => []);
+              groupedRides[formattedDate]!.add(ride);
+            }
+
+            return ListView(
+              children: groupedRides.keys.map((String date) {
+                List<QueryDocumentSnapshot<Map<String, dynamic>>> ridesOnDate =
+                    groupedRides[date]!;
+
+                return Column(
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start, // Align to the left
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        date,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
                         ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: ElevatedButton(
-                            style: ButtonStyle(
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                  Colors.red), // Set background color to black
-                              foregroundColor: MaterialStateProperty.all<Color>(
-                                  Colors.white), // Set icon color to white
-                            ),
-                            onPressed: () {
-                              // Implement your logic for handling ride deletion
-                              // For example, you might want to cancel the ride
-                              // by updating the Firestore document.
-                              _deleteRide(rides[index].id);
-                              print("Delete ride button pressed");
-                            },
-                            child: const Text("Delete"),
-                          ),
-                        )
-                      ],
+                      ),
                     ),
-                  ),
+                    ...ridesOnDate.map(
+                      (QueryDocumentSnapshot<Map<String, dynamic>> ride) {
+                        // Extract ride details
+                        String time = ride['time'];
+                        String start = ride['start'];
+                        String end = ride['end'];
+                        int availableSeats = ride['availableSeats'];
+                        return Card(
+                          color: Colors.white,
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              children: [
+                                Container(
+                                  color: Colors.white70,
+                                  child: Column(
+                                    children: [
+                                      ListTile(
+                                        title: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                const Icon(Icons.access_time),
+                                                const SizedBox(width: 8),
+                                                Text("Time: $time"),
+                                              ],
+                                            ),
+                                            Row(
+                                              children: [
+                                                const Icon(Icons.location_on),
+                                                const SizedBox(width: 8),
+                                                Text("Start: $start"),
+                                              ],
+                                            ),
+                                            Row(
+                                              children: [
+                                                const Icon(Icons.location_on),
+                                                const SizedBox(width: 8),
+                                                Text("End: $end"),
+                                              ],
+                                            ),
+                                            Row(
+                                              children: [
+                                                const Icon(
+                                                    Icons.event_seat_sharp),
+                                                const SizedBox(width: 8),
+                                                Text(
+                                                    "Available Seats: $availableSeats"),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: ElevatedButton(
+                                    style: ButtonStyle(
+                                      backgroundColor: MaterialStateProperty
+                                          .all<Color>(Colors
+                                              .red), // Set background color to black
+                                      foregroundColor: MaterialStateProperty
+                                          .all<Color>(Colors
+                                              .white), // Set icon color to white
+                                    ),
+                                    onPressed: () {
+                                      // Implement your logic for
+                                      _deleteRide(ride.id);
+                                      print("Delete ride button pressed");
+                                    },
+                                    child: const Text("Delete"),
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 );
-              },
+              }).toList(),
+            );
+          } else if (snapshot.hasError) {
+            print("Error fetching rides: ${snapshot.error}");
+            return const Center(
+              child: Text("Error fetching rides"),
             );
           } else {
             return const Center(
               child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text("Fetching rides..."),
-                    CircularProgressIndicator()
-                  ]),
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text("Fetching rides..."),
+                  CircularProgressIndicator(),
+                ],
+              ),
             );
           }
         },
@@ -176,40 +221,26 @@ class _RidePageState extends State<RidePage> {
 
   Future<void> _deleteRide(String rideId) async {
     try {
-      // Access the Firestore instance
       FirebaseFirestore firestore = FirebaseFirestore.instance;
-
-      // Reference to the ride document
       DocumentReference rideReference =
           firestore.collection('rides').doc(rideId);
 
-      // Get a reference to the subcollection
       CollectionReference<Map<String, dynamic>> bookingsCollection =
           rideReference.collection('bookings');
 
-      // Get all documents in the subcollection
       QuerySnapshot<Map<String, dynamic>> bookingsSnapshot =
           await bookingsCollection.get();
 
-      // Delete each document in the subcollection
       for (QueryDocumentSnapshot<Map<String, dynamic>> booking
           in bookingsSnapshot.docs) {
         await booking.reference.delete();
       }
 
-      // Delete the ride document
       await rideReference.delete();
 
-      // You can add additional logic here if needed, for example,
-      // notifying the user that the ride has been successfully deleted.
       print("Ride deleted successfully");
     } catch (e) {
       print("Error deleting ride: $e");
-      // Handle the error, for example, show an error message to the user.
     }
-  }
-
-  String _getFormattedDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
   }
 }

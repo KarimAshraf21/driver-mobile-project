@@ -1,19 +1,76 @@
-// ignore_for_file: use_build_context_synchronously, unnecessary_null_comparison
+// ignore_for_file: use_build_context_synchronously, avoid_print
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '/home_page.dart';
+import 'local_database.dart'; // Import the local database class
 
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({
-    Key? key,
-  }) : super(key: key);
+  const ProfilePage({Key? key}) : super(key: key);
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final LocalDatabase _localDatabase = LocalDatabase();
+
+  String firstname = '';
+  String email = '';
+  String phone = '';
+  String id = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDataForCurrentUser();
+  }
+
+  Future<void> _loadDataForCurrentUser() async {
+    try {
+      User? user = _auth.currentUser;
+
+      if (user != null) {
+        // Fetch data from Firestore using the user's UID
+        DocumentSnapshot<Map<String, dynamic>> snapshot =
+            await FirebaseFirestore.instance
+                .collection('drivers')
+                .doc(user.uid)
+                .get();
+
+        if (snapshot.exists) {
+          Map<String, dynamic> driverData = snapshot.data() ?? {};
+
+          // Save data to the local SQLite database
+          await _localDatabase.insertDriver(driverData);
+
+          // Update the UI with the loaded data
+          _loadDataFromLocalDb();
+        } else {
+          print('Driver details not found for user with UID: ${user.uid}');
+        }
+      } else {
+        print('No user is currently logged in.');
+      }
+    } catch (error) {
+      print('Error fetching data from Firestore: $error');
+    }
+  }
+
+  _loadDataFromLocalDb() async {
+    Map<String, dynamic> driver = await _localDatabase.getDriver();
+
+    print('Local Database - Loaded Driver Data: $driver');
+
+    setState(() {
+      firstname = driver['firstName'] ?? '';
+      email = driver['email'] ?? '';
+      phone = driver['phone'] ?? '';
+      id = driver['id'] ?? '';
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,7 +79,7 @@ class _ProfilePageState extends State<ProfilePage> {
         elevation: 0,
       ),
       body: Center(
-        child: firstname != null
+        child: firstname.isNotEmpty
             ? _buildProfileCard()
             : const CircularProgressIndicator(),
       ),

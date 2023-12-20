@@ -1,5 +1,5 @@
 // Import necessary packages
-// ignore_for_file: avoid_print
+// ignore_for_file: avoid_print, unused_field
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';

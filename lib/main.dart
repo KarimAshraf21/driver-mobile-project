@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print
+// ignore_for_file: avoid_print, unused_import
 
 import 'package:driver/firebase_options.dart';
 import 'package:driver/profile_page.dart';
